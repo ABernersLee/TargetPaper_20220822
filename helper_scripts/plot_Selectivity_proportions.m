@@ -1,5 +1,7 @@
-function plot_Selectivity_proportions(singledat,selectivity_params,...
+function prop_selective = plot_Selectivity_proportions(singledat,selectivity_params,...
     dirs,figs_to_run)
+
+prop_selective = [];
 
 % 2 figs for figure 5, one for supplemental figure 6
 
@@ -36,6 +38,7 @@ for itype = 1:2
     %figure 5e
     if (sum(ismember(figs_to_run,[0 5]))>0 && itype==2) || ...
             (sum(ismember(figs_to_run,0))>0)
+        
         figure; hold on
         for imouse = 1:4
             if sum(~isnan(datA(imouse,:)))>0
@@ -68,6 +71,7 @@ for itype = 1:2
             sp.ana_labs{3} '_TargetNonTargt_PropCorrSig_' ...
             sp.rep_probe{itype} ...
             '_OverallP_mouseplotline_ANOVAN.xlsx'])  
+         prop_selective.NTrepeat = datA;
     end
 
 end
@@ -214,5 +218,6 @@ for irep = 1:2
         writecell(tbl2,[thisdir 'ProportionOverSessions_' ...
             sp.ana_labs{3} '_' sp.rep_probe{irep} ...
             '_AnyChance_mouse_ANOVAN.xlsx'])    
+        prop_selective.TNT = dat;
     end
 end
