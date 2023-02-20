@@ -1,8 +1,8 @@
-function helper_plot_lick_lat(lickall,dirs)
+function helper_plot_lick_lat(lickall,dirs,lick_cutoff_ms)
 
 
 %from start of decision period
-lick_cutoff_ms = 500;
+% lick_cutoff_ms = 500;
 
 % Target and nontarget
 lickall2 = lickall(:,1); 
@@ -105,5 +105,5 @@ for it = 1:2
 end
 
 helper_saveandclosefig([dirs.figdir ...
-    '\Behavior\NeuralDataSessions\Licks\SpeedAccuracyTradeoff'])
+    '\Behavior\NeuralDataSessions\Licks\SpeedAccuracyTradeoff_lick_cutoff_ms' num2str(lick_cutoff_ms)])
  
