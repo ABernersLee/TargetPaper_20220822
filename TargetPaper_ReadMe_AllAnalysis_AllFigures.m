@@ -21,7 +21,9 @@
 %%%%%%%%% 
 
 %When on a PC
-addpath(genpath('C:\Users\AliceBL\Dropbox\FosterLab\scripts'))
+% addpath(genpath('C:\Users\AliceBL\Dropbox\FosterLab\scripts'))
+% addpath(genpath('C:\Users\Alice Berners-Lee\Dropbox\MurthyLab\TargetPaper\Scripts_For_TargetPaper\'))
+addpath(genpath('C:\Users\AliceBL\Dropbox\MurthyLab\TargetPaper\Scripts_For_TargetPaper\'))
 
 %home
 % dirs.dathome = 'H:\MurthyLab\LizData\';
@@ -96,6 +98,10 @@ end
 %%%%%%%%%
 %%%%%%%%% Behavior: Choice index, Lick latencies
 
+lick_cutoff_ms = 500;
+% lick_cutoff_ms = 0;
+
+
 %%% Accuracy and lick latency, including sessions that dont have neural
 %%% recordings
 % figure 1, 7
@@ -107,9 +113,9 @@ end
 %%% Accuracy and lick latency, for sessions that do have neural
 %%% recordings
 %figure 5, 7, S7, S8
-if sum(ismember(figs_to_run,[0 5 7 17 18]))>0
+if sum(ismember(figs_to_run,[0 5 7 18 19]))>0
     disp('Starting plot_accuracy_oversessions')
-    plot_accuracy_oversessions(dirs,neuron_info,neuronlistnew,figs_to_run)
+    plot_accuracy_oversessions(dirs,neuron_info,neuronlistnew,figs_to_run,lick_cutoff_ms)
 end
 
 %%% Accurary for other odor cohorts, with different target mixtures used,
@@ -307,16 +313,34 @@ if sum(ismember(figs_to_run,[0 6 7 17]))>0
     runshuffle = false;     
     if sum(ismember(figs_to_run,[0 6]))>0; runshuffle = true; end
     
+    if sum(ismember(figs_to_run,[0 17]))>0
+        prop_selective = plot_Selectivity_proportions(singledat,...
+            selectivity_params,dirs,figs_to_run);
+    else
+        prop_selective = [];
+    end
+
     % how many trials to look-back to interpolate 
     % probe data point from T/NT trial PVcorr
     PVCorr_lookback = 10; 
     
+    
+    %added conditionals 1/5/23 after reviewer comment
+    tozscore_neuron = 1;
+    tozscore_pv = 1;
 
 
-    %%%% Run
-    calculate_plot_PVcorr(dirs, neuron_info, neuronlistnew, ...
-        excludeLickNeurons, numNcutoff, postdattimes, ExclLickTime, ...
-        [],PVCorr_lookback,runshuffle,plotPVsessions,figs_to_run)
+%     for tozscore_neuron = 0:1
+%         for tozscore_pv = 0:1
+%             if (tozscore_neuron+tozscore_pv)<=1
+                %%%% Run
+                calculate_plot_PVcorr(dirs, neuron_info, neuronlistnew, ...
+                    excludeLickNeurons, numNcutoff, postdattimes, ExclLickTime, ...
+                    [],PVCorr_lookback,runshuffle,plotPVsessions,figs_to_run,...
+                    tozscore_neuron,tozscore_pv,prop_selective)
+%             end
+%         end
+%     end
 end
 
 %%%% Exclutions that are defined within the script itself
