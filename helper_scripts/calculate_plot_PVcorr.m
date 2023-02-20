@@ -1,6 +1,7 @@
 function calculate_plot_PVcorr(dirs,neuron_info,neuronlistnew, ...
     excludeLickNeurons,numNcutoff,postdattimes,ExclLickTime,is_issig_lick...
-    ,PVCorr_lookback,runshuffle,plotPVsessions,figs_to_run)
+    ,PVCorr_lookback,runshuffle,plotPVsessions,figs_to_run,...
+    tozscore_neuron,tozscore_pv,prop_selective)
 
 %%%%%
 %%%%%
@@ -79,6 +80,23 @@ if all_labels.todownsample
         num2str(minhmin)];
 end
 
+%added conditionals 1/5/23 after reviewer comment
+all_labels.tozscore_neuron = tozscore_neuron;
+all_labels.tozscore_pv = tozscore_pv;
+
+if all_labels.tozscore_pv==1
+     all_labels.addon = [all_labels.addon '_PVzscored'];
+else
+     all_labels.addon = [all_labels.addon '_PVraw'];
+end
+
+%added conditionals 1/5/23 after reviewer comment
+if all_labels.tozscore_neuron==1
+     all_labels.addon = [all_labels.addon '_NSzscored'];
+else
+     all_labels.addon = [all_labels.addon '_NSraw'];
+end
+
 try
     
 % there is only one session where there are both probes and NT repeats
@@ -87,11 +105,11 @@ try
 % figure 7 is Probe data and NTrepeat data
 for itype =  2:-1:1 
 
-    if sum(ismember(figs_to_run,[0 7]))==0 && itype==1
+    if sum(ismember(figs_to_run,[0 7 17]))==0 && itype==1
         continue
     end
 
-    if sum(ismember(figs_to_run,[0 6 7]))==0 && itype==2
+    if sum(ismember(figs_to_run,[0 6 7 17]))==0 && itype==2
         continue
     end
     
@@ -252,8 +270,15 @@ for itype =  2:-1:1
         %The data is z-scored for all analyses  
 
         ns_save = ns;
-        ns = zscore(ns,1); %scale it for decoding 
-        
+
+        %added conditional 1/5/23 after reviewer comment
+        if all_labels.tozscore_neuron==1
+%             ns = zscore(ns,1); %scale it for decoding %this was using
+%             population standard deviation (assums this is all the values,
+%             not a sample)
+            ns = zscore(ns,[],1); %scale it for decoding using sample population deviation
+        end
+
         %If there are fewer than the cutoff amount of neurons this session
         %then dont use this session
         if size(ns,2)<numNcutoff 
@@ -277,9 +302,11 @@ for itype =  2:-1:1
         %add correlations broken down by trial type
         corr_repeat_trial_session = cat(1,...
             corr_repeat_trial_session,[corr_repeat_trial_session0 ...
-            thelicktime]);
-        corr_repeats = cat(1,corr_repeats,corr_repeats0);
-
+            thelicktime ones(size(thelicktime))*size(ns,2)]);
+        %add number of neurons to the end
+        if ~isempty(corr_repeats0)
+            corr_repeats = cat(1,corr_repeats,[corr_repeats0 size(ns,2)]);
+        end
        %plot
         if all_labels.plotPVsessions && itype==1 && ...
                 (sum(ismember(figs_to_run,0))>0 ...
@@ -426,7 +453,9 @@ for itype =  2:-1:1
 
     % Average RSA values - supplemental figure 7
     if sum(ismember(figs_to_run,[0 17]))>0
-        plot_RSA_Averages(corr_repeats,all_labels,dirs,itype)
+        plot_RSA_Averages(corr_repeats,all_labels,dirs,itype,...
+            prop_selective) 
+        % prop_selective added 1/15/23 for reviewer comments
     end
    
         
