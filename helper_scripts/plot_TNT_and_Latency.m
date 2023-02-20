@@ -14,7 +14,7 @@ end
 % corr_repeat_trial_session
 % 1. PVcorr self, 2. PVcorr target, 3. PVcorr nontarget, 4. PVcorrOthers, 
 % 5. trialtype#, 6. trial, 7. session, 8. mouse, 9. accuracy, 
-% 10. lookback, 11. lick latency
+% 10. lookback, 11. lick latency, 12. number of neurons
 
 dat2 = corr_repeat_trial_session(corr_repeat_trial_session(:,5)>2,:);
 delind = dat2(:,11)<lick_cutoff_ms;
