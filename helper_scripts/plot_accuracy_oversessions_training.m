@@ -10,16 +10,19 @@ end
 
 lick_cutoff_ms = 500;
 mmlab = {'Mean';'Median'};
-stagelab = {'Learning';'Over-learning';'Probe'};
-stagelab2 = {'Stage 1';'Stage 2';'Stage 3';'Over-learning';'Probe'};
+stagelab = {'Learning';'Over-training';'Probe'};
+stagelab2 = {'Stage 1';'Stage 2';'Stage 3';'Over-training';'Probe'};
 mousenames = {'Q','R','S','T','V'};
 
 training_dirs = cell(5,1);
-training_dirs{1} = 'F:\LizData\Behavior_with_tetrodes_Feb2018\Spike_sorted_by_julien\behavior_with_tetrodes_save_all_licks_MouseQ';
-training_dirs{2} = 'F:\LizData\Behavior_with_tetrodes_Feb2018\Spike_sorted_by_julien\behavior_with_tetrodes_save_all_licks_MouseR';
-training_dirs{3} = 'F:\LizData\Behavior_with_tetrodes_Feb2018\behavior_with_tetrodes_save_all_licks_MouseS\';
-training_dirs{4} = 'F:\LizData\Behavior_with_tetrodes_Feb2018\behavior_with_tetrodes_save_all_licks_MouseT\';
-training_dirs{5} = 'F:\LizData\Behavior_with_tetrodes_Feb2018\behavior_with_tetrodes_save_all_licks_MouseV\';
+basedir = 'F:\LizData\Behavior_with_tetrodes_Feb2018\';
+% basedir = 'H:\MurthyLab\LizData\Behavior_with_tetrodes_Feb2018_upload\';
+
+training_dirs{1} = [basedir 'Spike_sorted_by_julien\behavior_with_tetrodes_save_all_licks_MouseQ'];
+training_dirs{2} = [basedir 'Spike_sorted_by_julien\behavior_with_tetrodes_save_all_licks_MouseR'];
+training_dirs{3} = [basedir 'behavior_with_tetrodes_save_all_licks_MouseS\'];
+training_dirs{4} = [basedir 'behavior_with_tetrodes_save_all_licks_MouseT\'];
+training_dirs{5} = [basedir 'behavior_with_tetrodes_save_all_licks_MouseV\'];
 
 vc = [0 .6 0;0 0 .9; .8 0 .8];
 exlnan_lab = {'ExclMissNaNs';'IncludeMissNans_exlTrailing'};
@@ -31,9 +34,9 @@ exlStg1_lab = {'ExclStage1';'IncludeStage1'};
 for exlnan = 1:2 
     for istg = 1:2
 
-        if exlnan==1 && istg==2
-            continue
-        end
+%         if exlnan==1 && istg==2
+%             continue
+%         end
     
         alldat = NaN(50,size(mousenames,2),5); 
         Tdat = NaN(50,size(mousenames,2),3);     
@@ -122,7 +125,13 @@ for exlnan = 1:2
                         filename_mouse_day = [d2(itday).name '/training_mouse_' ...
                             num2str(imouse) '_day_' num2str(10) '.mat'];
                     end
-                        
+                    
+                    if ~isfile(filename_mouse_day)
+                        filename_mouse_day = [filename_mouse_day(1:length(d2(itday).name)+1) ...
+                            filename_mouse_day(length(d2(itday).name)+2:end-4) ...
+                        '/' filename_mouse_day(length(d2(itday).name)+2:end)];                        
+                    end
+
                     load(filename_mouse_day,...
                                 'Is_odor_target_or_non_across_all_trials',...
                                 'times_of_correct_licks_to_port1_across_trials',...
@@ -145,7 +154,9 @@ for exlnan = 1:2
             dat = behavior_struct; dat2 = probe_behavior_struct;
             for itrialtype = 1:size(dat,2)
                 days = unique(extractfield(dat(itrialtype).performance,...
-                    'day_of_training'));   
+                    'day_of_training'));   %changed 1/20/23, because
+%                     didnt have mapping toolbox. can do either way.
+%                  days = unique([dat(itrialtype).performance.day_of_training]);   
                 if exlnan==1
                     choiceinx = extractfield(dat(itrialtype).performance,...
                         'avg_session_choice_index');
@@ -352,10 +363,15 @@ for exlnan = 1:2
                 for itrialtype = 1:3
                     erbar = sum(~isnan(datind(:,:,itrialtype,istage)),2)>1;
                     erdot = sum(~isnan(datind(:,:,itrialtype,istage)),2)==1;
+
+                    % ABL added 1/30/23 because of a reviewer comment
+                    scatter(find(erbar),datind(erbar,:,itrialtype,istage),...
+                        'MarkerEdgeColor',vc(itrialtype,:),'MarkerEdgeAlpha',0.2,'LineWidth',2)
+
                     errorbar(find(erbar),mean(datind(erbar,:,itrialtype,istage),2,'omitnan')...
                         ,std(datind(erbar,:,itrialtype,istage),[],2,'omitnan')...
                         ./sqrt(sum(~isnan(datind(erbar,:,itrialtype,istage)),2)),...
-                        'color',vc(itrialtype,:),'LineStyle','none')
+                        'color',vc(itrialtype,:),'LineStyle','none',LineWidth=1)
                     plot(find(erdot),datind(erdot,:,itrialtype,istage),'.',...
                         'color',vc(itrialtype,:),'MarkerSize',15)
                 end
