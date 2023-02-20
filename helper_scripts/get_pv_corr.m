@@ -6,8 +6,11 @@ function [corr_repeat_trial_session0,across_lookback0,corr_repeats0] = ...
 PVall = corrcoef(ns');
 PVall2 = PVall;
 
-% changed 4/20/22 after reading more about RSA
-PVall2 = zscore(PVall2);
+%added conditional 1/5/23 after reviewer comment
+if all_labels.tozscore_pv==1
+    % changed 4/20/22 after reading more about RSA
+    PVall2 = zscore(PVall2);
+end
 
 PVall2(eye(size(PVall))==1) = NaN;
 
@@ -69,16 +72,22 @@ if length(unique(ss))>3
     all_vals = NaN(1,size(nk,1));
     for ink = 1:size(nk,1)    
         ind = ss==nk(ink,1);
-        all_vals(ink) = mean(PVtrial(ind,nk(ink,2)));
+        all_vals(ink) = mean(PVtrial(ind,nk(ink,2)),'omitnan');
+        % the omitnan is only necessary because when not zscoring the
+        % neurons there are trials where no neurons fire, and so the
+        % variance is zero, so you cant have a PV correlation.
     end
     
      %ABL adding 7/14/22 to look at all combinations of RSA averages 
      % RSA values, trialtype, session, mouse, accuracy
-    corr_repeats0 = [all_vals ... %all combinations
-                (sessionstouse(isession,2)-...
-                min(sessionstouse(sessionstouse(isession,1) == ...
-                sessionstouse(:,1),2))+1) ... %session            
-                sessionstouse(isession,1)]; %mouse
+    corr_repeats0 = [all_vals sessionstouse(isession,2:-1:1)];
+                %all combs, session (true), mouse
+% ABL changed 1/15/23 to compare with the proportion correct
+%                 [all_vals ... %all combinations
+%                 (sessionstouse(isession,2)-...
+%                 min(sessionstouse(sessionstouse(isession,1) == ...
+%                 sessionstouse(:,1),2))+1) ... %session  
+%                 sessionstouse(isession,1)]; %mouse
 else
     corr_repeats0 = [];
 end
