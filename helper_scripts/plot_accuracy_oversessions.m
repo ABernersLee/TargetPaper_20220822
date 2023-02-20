@@ -1,5 +1,5 @@
 function plot_accuracy_oversessions(dirs,neuron_info,neuronlistnew,...
-    figs_to_run)
+    figs_to_run,lick_cutoff_ms)
 
 %%% behavior from sessions/mice with neural recordings
 
@@ -116,12 +116,12 @@ mice = 1:4;
 
 % licks, speed-accuracy tradeoff for sup. fig 8
 if sum(ismember(figs_to_run,[0 18]))>0
-    helper_plot_lick_lat(lickall,dirs)
+    helper_plot_lick_lat(lickall,dirs,lick_cutoff_ms)
 end
 
 % licks more ways, figures 5, s8 and s9
 if sum(ismember(figs_to_run,[0 5 18 19]))>0
-    helper_plot_lick(lickall,mice,mousenames,dirs,figs_to_run)
+    helper_plot_lick(lickall,mice,mousenames,dirs,figs_to_run,lick_cutoff_ms)
 end
 
 % accuracy
