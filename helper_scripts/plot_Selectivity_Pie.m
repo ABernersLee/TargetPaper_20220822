@@ -188,13 +188,13 @@ for iana = [1 3]
                 
                 for imouse = 1:size(isUp,1)                                
                     plot(1+.2*imouse+rand(size(isUp,2),1)/20,...
-                        mean(dat(imouse,:,:,1),3),'ok','omitnan')
+                        mean(dat(imouse,:,:,1),3,'omitnan'),'ok')
                     plot(2+.2*imouse+rand(size(isUp,2),1)/20,...
                         sum(dat(imouse,:,:,2),3,'omitnan')./...
-                        sum(dat(imouse,:,:,4),3),'ok','omitnan')                
+                        sum(dat(imouse,:,:,4),3,'omitnan'),'ok')                
                     plot(3+.2*imouse+rand(size(isUp,2),1)/20,...
                         sum(dat(imouse,:,:,3),3,'omitnan')./...
-                        sum(dat(imouse,:,:,5),3),'ok','omitnan')                                 
+                        sum(dat(imouse,:,:,5),3,'omitnan'),'ok')                                 
                 end
                 
                 for iplot = 1:3
@@ -283,7 +283,46 @@ for iana = [1 3]
                     plotlab2{iplot2} '_ANOVA.xlsx']) 
                 writecell(num2cell(stats2),[thisdir ...
                     'PieModulations_pvalue' num2str(sp.p_cutoff) '_' ...
-                    sp.ana_labs{iana} plotlab2{iplot2} '_PostHoc.xlsx'])       
+                    sp.ana_labs{iana} plotlab2{iplot2} '_PostHoc.xlsx'])      
+
+                dat1_d = sum(~isnan(dat(:,:,:,1)),3); dat1_d(dat1_d==0) = NaN;
+                dat2_d = sum(dat(:,:,:,4),3,'omitnan'); dat2_d(dat2_d==0) = NaN;
+                dat3_d = sum(dat(:,:,:,5),3,'omitnan'); dat3_d(dat3_d==0) = NaN;
+                datd = cat(2,dat1_d(:),dat2_d(:),dat3_d(:));
+                datt = cat(2,dat1(:),dat2(:),dat3(:));
+                typelabel2 = {'Target';'Probe';'NT Repeat'};
+                testadd = repmat(ones(1,38),[4 1]).*(1:38)*.02;
+
+                figure; hold on;
+                for itype = 1:3
+                    subplot(1,3,itype)
+                    hold on
+                    plot(datd(:,itype)+testadd(:),datt(:,itype),'ok',...
+                        'MarkerSize',15)
+                    [r1,p1] = corr(datd(:,itype),datt(:,itype),...
+                        'rows','complete');
+                    xlabel(['Number of ' typelabel2{itype} ...
+                        ' neurons evaluated'])
+                    ylabel(['Proportion of ' typelabel2{itype} ...
+                        ' neurons significant'])
+                    legend(['n = ' num2str(sum(~isnan(datd(:,itype)))) ...
+                        ' ' helper_text_rp(r1,p1,2)])
+                    title([typelabel2{itype} ' neurons. ' ...
+                        num2str(min(datd(:,itype))) '-' num2str(max(datd(:,itype))) ...
+                        ', mean: ' num2str(mean(datd(:,itype),'omitnan')) ...
+                        ', median: ' num2str(median(datd(:,itype),'omitnan')) ...
+                        ])
+                    xlim([0 35])
+                    ylim([0 .7])
+                    set(gca,'FontSize',20)
+                end
+%                 set(gcf,'Position',[2076         408         420         973])
+                set(gcf,'Position',[ 91         334        2529         534])
+                helper_saveandclosefig([thisdir 'PieModulations_pvalue'...
+                    num2str(sp.p_cutoff) '_' sp.ana_labs{iana} ...
+                    plotlab2{iplot2} '_PLOS_Reviewer3_Point5'])
+
+
             end
         end
 
@@ -320,6 +359,32 @@ for iana = [1 3]
             ylabel('Proportion of neurons')            
             helper_saveandclosefig([thisdir 'PieEquivilant_pvalue' ...
                 num2str(sp.p_cutoff) '_' sp.ana_labs{iana} '_1'])
+
+            %%% NEW WITH PLOS REVIEWS
+            %number of neurons passed critera for each session
+            testdat = squeeze(sum(~isnan(dat(:,:,:,1)),3));
+            % to make jitter such that no two sessions are plotted on top of each other
+            testadd = repmat(ones(1,38),[4 1]).*(1:38)*.02; 
+            %proportion of up and down neurons
+            dat1 = mean(dat(:,:,:,1),3,'omitnan'); dat1 = dat1(:);
+            dat2 = mean(dat(:,:,:,2),3,'omitnan'); dat2 = dat2(:);
+            f = figure; hold on
+            yyaxis left; 
+            plot(testdat(:)+testadd(:),dat1,'ob','MarkerSize',15)
+            ylim([0 .7])
+            ylabel('Proportion of odor-on up neurons')
+            xlabel('Number of neurons in session')
+            yyaxis right; 
+            plot(testdat(:)+testadd(:),dat2,'xr','MarkerSize',15)
+            ylim([0 .7])
+            ylabel('Proportion of odor-on down neurons')
+            [r1,p1] = corr(testdat(:),dat1,'rows','complete');
+            [r2,p2] = corr(testdat(:),dat2,'rows','complete');
+            legend(helper_text_rp(r1,p1,2),helper_text_rp(r2,p2,2))
+            f.Children(2).FontSize = 20;
+            set(gcf,'Position',[ 2003         478         720         526])
+            helper_saveandclosefig([thisdir 'PieEquivilant_pvalue' ...
+                num2str(sp.p_cutoff) '_' sp.ana_labs{iana} '_PlosReviewer1_point2'])
         end
 
 
